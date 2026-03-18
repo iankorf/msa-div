@@ -40,7 +40,8 @@ def file_type(filename):
 		sys.exit(f'unknown file type: {filename}')
 
 def discretizer(col):
-	# do _something_ about gaps
+	gap_count = col.count('.') + col.count('-')
+	if gap_count / len(col) > 0.3: return 9 # gap code
 
 	# get average score among all pairwise comparisons
 	scores = []
@@ -53,7 +54,7 @@ def discretizer(col):
 	x = round(statistics.mean(scores))
 	if x < -2: x = -2
 	if x > 6: x = 6
-	return x
+	return x + 2
 
 def display_matrix(hmm, score, trace, beg, end):
 	for j in range(len(hmm['states'])):

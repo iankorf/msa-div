@@ -129,7 +129,7 @@ class MSA:
 			print('#=GS', lid, 'AC', uid, file=fp)
 		for lid, seq in zip(self.lids, self.seqs):
 			print(lid, seq, sep='\t', file=fp)
-
+		print('//', file=fp)
 
 	def column(self, n):
 		letters = []

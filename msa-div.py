@@ -87,12 +87,6 @@ for i in range(len(seqs[0])):
 	seq.append(x)
 	print(''.join(col), x)
 
-sys.exit('yo')
-
-if arg.verbose: print('seq:', seq)
-
-sys.exit('discretizer')
-
 ##########
 ## HMM ##
 ########
@@ -100,11 +94,13 @@ sys.exit('discretizer')
 with open(arg.hmm) as fp: hmm = json.load(fp)
 if arg.verbose: print('hmm:', hmm)
 
-# create emission lut
-
+# create emission lut in log2
 emit = []
-for mean, stdev in hmm['emissions']:
-	emit.append(emission_lookup(mean, stdev, arg.precision))
+for probs in hmm['emissions']:
+	scores = []
+	for p in probs: scores.append(math.log2(p))
+	scores.append(0) # gap score
+	emit.append(scores)
 if arg.verbose: print('emissions:', emit)
 
 # create transmission lut in log2
@@ -131,6 +127,8 @@ for j in range(states):
 	trace[0][j] = '*'
 
 #if arg.verbose: display_matrix(hmm, score, trace, 0, 3)
+
+print(seq)
 
 ## induction
 for i in range(1, len(seq)+1):

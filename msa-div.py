@@ -1,11 +1,10 @@
 import argparse
 import json
 import math
-import scipy
 import statistics
 import sys
 
-import msadiv
+import msalib
 
 def read_fasta(filename):
 
@@ -39,23 +38,6 @@ def file_type(filename):
 		if firstline.startswith('# STOCKHOLM'): return 'stockholm'
 		sys.exit(f'unknown file type: {filename}')
 
-def discretizer(col):
-	gap_count = col.count('.') + col.count('-')
-	if gap_count / len(col) > 0.3: return 9 # gap code
-
-	# get average score among all pairwise comparisons
-	scores = []
-	for i, a in enumerate(col):
-		if a not in msalib.B62: continue
-		for b in col[i+1:]:
-			if b not in msalib.B62: continue
-			scores.append(blosum[a][b])
-
-	x = round(statistics.mean(scores))
-	if x < -2: x = -2
-	if x > 6: x = 6
-	return x + 2
-
 def display_matrix(hmm, score, trace, beg, end):
 	for j in range(len(hmm['states'])):
 		print(hmm['states'][j], end='\t')
@@ -66,7 +48,6 @@ def display_matrix(hmm, score, trace, beg, end):
 			else:                   print(trace[i][j], end='\t')
 		print()
 
-
 ##########
 ## CLI ##
 ########
@@ -75,8 +56,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('hmm', metavar='<*.json>', help='hmm in json')
 parser.add_argument('maf', metavar='<file>',
 	help='multiple alignment file in stockholm or fasta')
-parser.add_argument('--blosum', metavar='<matrix>', default='BLOSUM62',
-	help='BLOSUM scoring matrix [%(default)s]')
 parser.add_argument('--verbose', action='store_true')
 arg = parser.parse_args()
 
@@ -104,12 +83,11 @@ for i in range(len(seqs[0])):
 	col = []
 	for j in range(len(seqs)):
 		col.append(seqs[j][i])
-	x = discretizer(col, blosum)
+	x = msalib.column_discretizer(col)
+	seq.append(x)
 	print(''.join(col), x)
 
-	#seq.append(discretizer(col, blosum))
-
-sys.exit()
+sys.exit('yo')
 
 if arg.verbose: print('seq:', seq)
 

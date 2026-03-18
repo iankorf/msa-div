@@ -150,3 +150,19 @@ def read_stockholm(filename):
 			lines.append(line.rstrip())
 	fp.close()
 
+def column_discretizer(col):
+	gap_count = col.count('-')
+	if gap_count / len(col) > 0.5: return 9 # gap code
+
+	# get average score among all pairwise comparisons
+	scores = []
+	for i, a in enumerate(col):
+		if a not in B62: continue
+		for b in col[i+1:]:
+			if b not in B62: continue
+			scores.append(B62[a][b])
+
+	x = round(statistics.mean(scores))
+	if x < -2: x = -2
+	if x > 6: x = 6
+	return x + 2

@@ -77,19 +77,32 @@ transition adjaceny matrix would be as follows:
 | bad  | good | 0.02 |
 | bad  | bad  | 0.98 | 50 aa long on average
 
-What exactly are the emission probabilities of good and bad states? Some
-measure of how uniform the alignment is. After trying entropy, percent
-identity, pairwise percent identity, and pairwise score, I chose pairwiwse
-score (entropy did not correlate with the others and percent identity of any
-measure doesn't capture amino acid similarity as well as a scoring matrix).
+What exactly are the emission probabilities of good and bad states? On can
+imagine various ways to characterize a column of a multiple alignment.
+
+- Entropy
+- Percent identity
+- Percent similariy
+- Pairwise percent identity (average of all pairwise combinations)
+- Pairwise percent similarity
+- Pairwise average score (average BLOSUM62 score over all combinations)
+
+After trying entropy, percent identity, pairwise percent identity, and pairwise
+score, I chose pairwiwse score to represent the "goodness" of a multiple
+alignment column. Entropy did not correlate with the other methods. While
+percent identity and pairwise percent identity were highly correlated with each
+other and with pairwise score, I feel that score is better than percent
+identity because it captures amino acid chemistry and because protein
+alignments have preferred scoring matrices to match-mismatch scoring for
+decades.
 
 Given the amino acid frequencies in Pfam 38.1, the average expected BLOSUM62
 score is about -0.95. An HMM needs discrete emission values, not just one
 value. I decided to generate these values by creating 1 million random
-alignments of depth 5. I chose 5 to spread the range of stochasticity and also
-because I imagined that 5 is about the minimal useful depth of a multiple
-alignment. Here is the discretized scoring space of 1 million random
-alignments.
+alignments of depth 5. I chose 5 to spread the range of scores and also because
+I imagined that 5 is about the minimal useful depth of a multiple alignment.
+Here is the discretized scoring space of 1 million random alignments where
+scores are represented as integers.
 
 ```
 -3 846 0.000846
@@ -129,7 +142,7 @@ distributions. Scores < -3 were converted to 3 and scores > 7 were converted to
 ```
 
 Idealized emission probabilities for bad (Random) and good (Observed) are shown
-in the table below. These will be looked up in a emission table via the Code.
+in the table below (the Code is how the value is implemented in the program).
 
 | Score | Random | Obs  | Code |
 |:------|:-------|:-----|:-----|
@@ -144,16 +157,15 @@ in the table below. These will be looked up in a emission table via the Code.
 |   6   | 0.001  | 0.04 |   8  |
 |  gap  | x      | x    |   9  |
 
-A column that is mostly gaps is due to a couple sequences with different
-lengths rather than different sequences. Such gaps should not affect decoding.
+Gaps cannot be considered to be paired with amino acids and must be handled
+heuristically in decoding.
 
 ## Decoding ##
 
-Here is an HMM in JSON where "hi" is observed and "lo" is random. Note
-that the properties of gaps are not in the HMM, as the HMM describes the
-conservation of columns and gaps represent different lengths of
-sequences. The emission probabilities of columns with lots of gaps is
-handled heuristically.
+Here is an HMM in JSON where "hi" is observed and "lo" is random. Note that
+there are 9 emission values representing scores from -2 to 6. Gaps are not
+described by the HMM and are "hacked" into the algorithm, having the same
+emission probability in all states.
 
 ```
 {
@@ -168,4 +180,36 @@ handled heuristically.
     [0.250, 0.500, 0.200, 0.035, 0.005, 0.004, 0.003, 0.002, 0.001]
   ]
 }
+```
+
+Given the sequences below, the HMM should split this MSA into 3 parts:
+
+1) Good from 1-10 (high conservation, all A)
+2) Bad from 11-20 (very little conservation)
+3) Good from 21-50 (the gap region should be ignored)
+
+```
+S1_TEST/1-50	AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+S2_TEST/1-50	AAAAAAAAAACCCCCCCCCCAAAAAAAAAA----------AAAAAAAAAA
+S3_TEST/1-50	AAAAAAAAAADDDDDDDDDDAAAAAAAAAA----------AAAAAAAAAA
+S4_TEST/1-50	AAAAAAAAAAEEEEEEEEEEAAAAAAAAAA----------AAAAAAAAAA
+S5_TEST/1-50	AAAAAAAAAAFFFFFFFFFFAAAAAAAAAA----------AAAAAAAAAA
+S6_TEST/1-50	AAAAAAAAAAGGGGGGGGGGAAAAAAAAAA----------AAAAAAAAAA
+S7_TEST/1-50	AAAAAAAAAAHHHHHHHHHHAAAAAAAAAA----------AAAAAAAAAA
+S8_TEST/1-50	AAAAAAAAAAIIIIIIIIIIAAAAAAAAAA----------AAAAAAAAAA
+S9_TEST/1-50	AAAAAAAAAAKKKKKKKKKKAAAAAAAAAA----------AAAAAAAAAA
+```
+
+You can test the code as follows:
+
+```
+python3 msa-div.py hilo.json test.msa
+```
+
+Which produces the following output:
+
+```
+hi	1	10
+lo	11	20
+hi	21	50
 ```

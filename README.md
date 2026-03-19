@@ -32,50 +32,50 @@ a lot of Glutamate. There may be other patterns.
 
 ```
 AA	Coiled	Disord	Domain	Family	Motif	Repeat
-A	0.0839	0.0837	0.0832	0.0876	0.0957	0.078	
-C	0.0074	0.0094	0.0149	0.0127	0.0142	0.016	
-D	0.0534	0.0499	0.0583	0.0534	0.0475	0.0584	
-E	0.1317	0.0773	0.0665	0.0623	0.0598	0.0613	
-F	0.0178	0.0243	0.0409	0.0443	0.0352	0.0407	
-G	0.0282	0.0795	0.069	0.0684	0.0731	0.0619	
-H	0.018	0.0231	0.0227	0.0212	0.0211	0.0235	
-I	0.0454	0.0251	0.058	0.0596	0.0517	0.0572	
-K	0.0913	0.0607	0.0532	0.0515	0.0599	0.052	
-L	0.1163	0.0629	0.0988	0.1048	0.1112	0.1117	
-M	0.023	0.0147	0.0201	0.022	0.0239	0.02	
-N	0.0412	0.0385	0.0395	0.0381	0.0358	0.0446	
-P	0.0165	0.095	0.0442	0.0451	0.0403	0.0401	
-Q	0.0789	0.0569	0.0377	0.0368	0.0401	0.0396	
-R	0.0718	0.0555	0.058	0.0564	0.0683	0.0503	
-S	0.0608	0.1194	0.0635	0.0641	0.0681	0.0756	
-T	0.0449	0.0609	0.0544	0.0536	0.0565	0.055	
-V	0.0457	0.0414	0.071	0.0705	0.0641	0.066	
-W	0.0057	0.0063	0.0137	0.0148	0.0097	0.0148	
+A	0.0839	0.0837	0.0832	0.0876	0.0957	0.078
+C	0.0074	0.0094	0.0149	0.0127	0.0142	0.016
+D	0.0534	0.0499	0.0583	0.0534	0.0475	0.0584
+E	0.1317	0.0773	0.0665	0.0623	0.0598	0.0613
+F	0.0178	0.0243	0.0409	0.0443	0.0352	0.0407
+G	0.0282	0.0795	0.069	0.0684	0.0731	0.0619
+H	0.018	0.0231	0.0227	0.0212	0.0211	0.0235
+I	0.0454	0.0251	0.058	0.0596	0.0517	0.0572
+K	0.0913	0.0607	0.0532	0.0515	0.0599	0.052
+L	0.1163	0.0629	0.0988	0.1048	0.1112	0.1117
+M	0.023	0.0147	0.0201	0.022	0.0239	0.02
+N	0.0412	0.0385	0.0395	0.0381	0.0358	0.0446
+P	0.0165	0.095	0.0442	0.0451	0.0403	0.0401
+Q	0.0789	0.0569	0.0377	0.0368	0.0401	0.0396
+R	0.0718	0.0555	0.058	0.0564	0.0683	0.0503
+S	0.0608	0.1194	0.0635	0.0641	0.0681	0.0756
+T	0.0449	0.0609	0.0544	0.0536	0.0565	0.055
+V	0.0457	0.0414	0.071	0.0705	0.0641	0.066
+W	0.0057	0.0063	0.0137	0.0148	0.0097	0.0148
 Y	0.018	0.0152	0.0324	0.0327	0.024	0.0331
 ```
 
-Gap characters are least common in Coiled and Motif.
+Gap characters are least common in Coiled and Motif (ignored in the previous
+table).
 
 - Coiled 0.2017
-- Disorederd 0.3026
+- Disorderd 0.3026
 - Domain 0.4382
 - Family 0.4135
 - Motif 0.2238
 - Repeat 0.4472
 
+A domain is a useful point of interest because it has a lot of alignments and
+is a unit of function. Domains range from 16 to 1843 amino acids with multiple
+alignment depths ranging from 1 to 4028 sequences. Typical domains are around
+100 amino acids. The pieces between domains tend to be smaller. A simple
+transition adjaceny matrix would be as follows:
 
-A domain is a useful type because it has a lot of alignments and is a
-unit of function. Domains range from 16 to 1843 amino acids with
-multiple alignment depths ranging from 1 to 4028 sequences. Typical
-domains are around 100 amino acids. The pieces between domains tend to
-be smaller. A simple transition adjaceny matrix would be as follows:
-
-| From | To   | Prob |
-|:-----|:-----|:------
-| good | good | 0.99 |
+| From | To   | Prob | Notes
+|:-----|:-----|:-----|:------
+| good | good | 0.99 | 100 aa long on average
 | good | bad  | 0.01 |
 | bad  | good | 0.02 |
-| bad  | bad  | 0.98 |
+| bad  | bad  | 0.98 | 50 aa long on average
 
 What exactly are the emission probabilities of good and bad states? Some
 measure of how uniform the alignment is. After trying entropy, percent

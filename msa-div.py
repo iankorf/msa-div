@@ -85,14 +85,14 @@ for i in range(len(seqs[0])):
 		col.append(seqs[j][i])
 	x = msalib.column_discretizer(col)
 	seq.append(x)
-	print(''.join(col), x)
+if arg.verbose: print(seq, file=sys.stderr)
 
 ##########
 ## HMM ##
 ########
 
 with open(arg.hmm) as fp: hmm = json.load(fp)
-if arg.verbose: print('hmm:', hmm)
+if arg.verbose: print('hmm:', hmm, file=sys.stderr)
 
 # create emission lut in log2
 emit = []
@@ -101,13 +101,13 @@ for probs in hmm['emissions']:
 	for p in probs: scores.append(math.log2(p))
 	scores.append(0) # gap score
 	emit.append(scores)
-if arg.verbose: print('emissions:', emit)
+if arg.verbose: print('emissions:', emit, file=sys.stderr)
 
 # create transmission lut in log2
 trans = []
 for probs in hmm['transitions']:
 	trans.append( [math.log2(x) for x in probs] )
-if arg.verbose: print('transitions:', trans)
+if arg.verbose: print('transitions:', trans, file=sys.stderr)
 
 ###############
 ## Decoding ##
@@ -127,8 +127,6 @@ for j in range(states):
 	trace[0][j] = '*'
 
 #if arg.verbose: display_matrix(hmm, score, trace, 0, 3)
-
-print(seq)
 
 ## induction
 for i in range(1, len(seq)+1):

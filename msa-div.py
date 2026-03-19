@@ -6,31 +6,6 @@ import sys
 
 import msalib
 
-def read_fasta(filename):
-
-	if   filename.endswith('.gz'): fp = gzip.open(filename, 'rt')
-	elif filename == '-':          fp = sys.stdin
-	else:                          fp = open(filename)
-
-	name = None
-	seqs = []
-	while True:
-		line = fp.readline()
-		if line == '': break
-		line = line.rstrip()
-		if line.startswith('>'):
-			if len(seqs) > 0:
-				seq = ''.join(seqs)
-				yield name, seq
-				name = line[1:]
-				seqs = []
-			else:
-				name = line[1:]
-		else:
-			seqs.append(line)
-	yield name, ''.join(seqs)
-	fp.close()
-
 def file_type(filename):
 	with open(filename) as fp:
 		firstline = next(fp)
@@ -66,7 +41,7 @@ seqs = []
 uids = []
 match file_type(arg.maf):
 	case 'fasta':
-		for defline, seq in read_fasta(arg.maf):
+		for defline, seq in msalib.read_fasta(arg.maf):
 			seqs.append(seq)
 			uids.append(defline.split()[0])
 	case 'stockholm':

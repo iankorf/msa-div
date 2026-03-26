@@ -27,8 +27,8 @@ following types:
 ```
 
 The amino acid composition of each type is shown below. They are all
-pretty similar. Disoredered domains have fewer hydrophobics. Coiled have
-a lot of Glutamate. There may be other patterns.
+pretty similar. Disordered domains have fewer hydrophobics. Coiled have
+a lot of Glutamate. There are other interesting patterns.
 
 ```
 AA	Coiled	Disord	Domain	Family	Motif	Repeat
@@ -58,7 +58,7 @@ Gap characters are least common in Coiled and Motif (ignored in the previous
 table).
 
 - Coiled 0.2017
-- Disorderd 0.3026
+- Disordered 0.3026
 - Domain 0.4382
 - Family 0.4135
 - Motif 0.2238
@@ -68,7 +68,7 @@ A domain is a useful point of interest because it has a lot of alignments and
 is a unit of function. Domains range from 16 to 1843 amino acids with multiple
 alignment depths ranging from 1 to 4028 sequences. Typical domains are around
 100 amino acids. The pieces between domains tend to be smaller. A simple
-transition adjaceny matrix would be as follows:
+transition adjacency list would be as follows:
 
 | From | To   | Prob | Notes
 |:-----|:-----|:-----|:------
@@ -82,13 +82,13 @@ imagine various ways to characterize a column of a multiple alignment.
 
 - Entropy
 - Percent identity
-- Percent similariy
+- Percent similarity
 - Pairwise percent identity (average of all pairwise combinations)
 - Pairwise percent similarity
 - Pairwise average score (average BLOSUM62 score over all combinations)
 
 After trying entropy, percent identity, pairwise percent identity, and pairwise
-score, I chose pairwiwse score to represent the "goodness" of a multiple
+score, I chose pairwise score to represent the "goodness" of a multiple
 alignment column. Entropy did not correlate with the other methods. While
 percent identity and pairwise percent identity were highly correlated with each
 other and with pairwise score, I feel that score is better than percent
@@ -124,8 +124,8 @@ columns from "typical" domains in Pfam 38.1 with the following criteria:
 - Alignment length 50-200
 
 The observed columns of multiple alignments have the following average score
-distributions. Scores < -3 were converted to 3 and scores > 7 were converted to
-7.
+distributions. Scores < -3 were converted to -3 and scores > 7 were converted
+to 7.
 
 ```
 -3 956 0.005449839811193834

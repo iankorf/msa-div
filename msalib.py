@@ -166,3 +166,53 @@ def column_discretizer(col):
 	if x < -2: x = -2
 	if x > 6: x = 6
 	return x + 2
+
+###
+
+import cppyy
+import numpy as np
+
+cppyy.cppdef("""
+extern "C" {
+	#include <string.h>
+	#include <stdio.h>
+
+	void get_similarities(char **seqs, int size, float *results) {
+		double mat[size][size];
+		for (int i = 0; i < size; i++) {
+			for (int j = i + 1; j < size; j++) {
+				char *s1 = seqs[i];
+				char *s2 = seqs[j];
+				int slen = strlen(s1);
+				int match = 0;
+				int total = 0;
+				for (int k = 0; k < slen; k++) {
+					if (s1[k] == '.') continue;
+					if (s2[k] == '.') continue;
+					if (s1[k] == s2[k]) match++;
+					total++;
+				}
+				mat[i][j] = (double)match/(double)total;
+				mat[j][i] = mat[i][j];
+			}
+		}
+		
+		for (int i = 0; i < size; i++) {
+			double total = 0;
+			for (int j = 0; j < size; j++) {
+				if (i == j) continue;
+				total += mat[i][j];
+			}
+			double ave = total / (double)(size -1);
+			results[i] = ave;
+		}
+		
+	}
+}""")
+
+if __name__ == '__main__':
+	print('hello world')
+	seqs = ['ACGT', 'ACGT', 'AAAA', 'TCGA']
+	results = np.zeros(len(seqs), dtype=np.float32)
+	cppyy.gbl.get_similarities(seqs, len(seqs), results)
+	print(results)

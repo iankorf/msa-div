@@ -96,7 +96,7 @@ class MSA:
 		for line in lines[1:]:
 			if line.startswith('#=GF'):
 				tag = line[5:7]
-				val = line[10:]
+				val = line[8:]
 				match tag:
 					case 'ID': self.identifier = val
 					case 'AC': self.accession = val

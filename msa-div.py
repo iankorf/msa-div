@@ -78,7 +78,7 @@ for probs in hmm['emissions']:
 	emit.append(scores)
 if arg.verbose: print('emissions:', emit, file=sys.stderr)
 
-# create transmission lut in log2
+# create transition lut in log2
 trans = []
 for probs in hmm['transitions']:
 	trans.append( [math.log2(x) for x in probs] )

@@ -137,7 +137,6 @@ class MSA:
 			letters.append(seq[n])
 		return ''.join(letters)
 
-
 def read_stockholm(filename):
 	"""Stockholm file iterator: yields msa objects"""
 	fp = get_fp(filename)
@@ -167,7 +166,9 @@ def column_discretizer(col):
 	if x > 6: x = 6
 	return x + 2
 
-###
+#############
+## C area ##
+###########
 
 import cppyy
 import numpy as np
@@ -196,7 +197,7 @@ extern "C" {
 				mat[j][i] = mat[i][j];
 			}
 		}
-		
+
 		for (int i = 0; i < size; i++) {
 			double total = 0;
 			for (int j = 0; j < size; j++) {
@@ -206,13 +207,13 @@ extern "C" {
 			double ave = total / (double)(size -1);
 			results[i] = ave;
 		}
-		
 	}
 }""")
 
 if __name__ == '__main__':
-	print('hello world')
-	seqs = ['ACGT', 'ACGT', 'AAAA', 'TCGA']
-	results = np.zeros(len(seqs), dtype=np.float32)
-	cppyy.gbl.get_similarities(seqs, len(seqs), results)
-	print(results)
+	# for testing, assumes root directory of repo
+	msa = next(read_stockholm('example.stk.gz'))
+	results = np.zeros(msa.depth, dtype=np.float32)
+	cppyy.gbl.get_similarities(msa.seqs, msa.depth, results)
+	for uid, dis in zip(msa.uids, results):
+		print(uid, dis)

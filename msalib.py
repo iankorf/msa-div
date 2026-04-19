@@ -178,10 +178,14 @@ extern "C" {
 	#include <string.h>
 	#include <stdio.h>
 
+	// this could be 2x faster by mirroring the half matrix
+	// could also use a thread-pool
+	// could also be outside python FFS
 	void get_similarities(char **seqs, int size, float *results) {
-		double mat[size][size];
 		for (int i = 0; i < size; i++) {
-			for (int j = i + 1; j < size; j++) {
+			double sum = 0;
+			for (int j = 0; j < size; j++) {
+				if (i == j) continue;
 				char *s1 = seqs[i];
 				char *s2 = seqs[j];
 				int slen = strlen(s1);
@@ -193,19 +197,9 @@ extern "C" {
 					if (s1[k] == s2[k]) match++;
 					total++;
 				}
-				mat[i][j] = (double)match/(double)total;
-				mat[j][i] = mat[i][j];
+				sum += (double)match/(double)total;
 			}
-		}
-
-		for (int i = 0; i < size; i++) {
-			double total = 0;
-			for (int j = 0; j < size; j++) {
-				if (i == j) continue;
-				total += mat[i][j];
-			}
-			double ave = total / (double)(size -1);
-			results[i] = ave;
+			results[i] = sum/(double)(size -1);
 		}
 	}
 }""")

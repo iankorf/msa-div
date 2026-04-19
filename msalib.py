@@ -96,7 +96,7 @@ class MSA:
 		for line in lines[1:]:
 			if line.startswith('#=GF'):
 				tag = line[5:7]
-				val = line[8:]
+				val = line[10:]
 				match tag:
 					case 'ID': self.identifier = val
 					case 'AC': self.accession = val
@@ -175,39 +175,43 @@ import numpy as np
 
 cppyy.cppdef("""
 extern "C" {
-	#include <string.h>
-	#include <stdio.h>
+#include <string.h>
+#include <stdio.h>
 
-	// this could be 2x faster by mirroring the half matrix
-	// could also use a thread-pool
-	// could also be outside python FFS
-	void get_similarities(char **seqs, int size, float *results) {
-		for (int i = 0; i < size; i++) {
-			double sum = 0;
-			for (int j = 0; j < size; j++) {
-				if (i == j) continue;
-				char *s1 = seqs[i];
-				char *s2 = seqs[j];
-				int slen = strlen(s1);
-				int match = 0;
-				int total = 0;
-				for (int k = 0; k < slen; k++) {
-					if (s1[k] == '.') continue;
-					if (s2[k] == '.') continue;
-					if (s1[k] == s2[k]) match++;
-					total++;
-				}
-				sum += (double)match/(double)total;
+// this could be 2x faster by mirroring the half matrix
+// could also use a thread-pool
+// could also be outside python FFS
+void get_similarities(char **seqs, int size, float *results) {
+	for (int i = 0; i < size; i++) {
+		double sum = 0;
+		for (int j = 0; j < size; j++) {
+			if (i == j) continue;
+			char *s1 = seqs[i];
+			char *s2 = seqs[j];
+			int slen = strlen(s1);
+			int match = 0;
+			int total = 0;
+			for (int k = 0; k < slen; k++) {
+				if (s1[k] == '.') continue;
+				if (s2[k] == '.') continue;
+				if (s1[k] == s2[k]) match++;
+				total++;
 			}
-			results[i] = sum/(double)(size -1);
+			sum += (double)match/(double)total;
 		}
+		results[i] = sum/(double)(size -1);
 	}
-}""")
+}}""")
 
 if __name__ == '__main__':
-	# for testing, assumes root directory of repo
-	msa = next(read_stockholm('example.stk.gz'))
-	results = np.zeros(msa.depth, dtype=np.float32)
-	cppyy.gbl.get_similarities(msa.seqs, msa.depth, results)
-	for uid, dis in zip(msa.uids, results):
-		print(uid, dis)
+	import argparse
+	parser = argparse.ArgumentParser()
+	parser.add_argument('stockholm')
+	parser.add_argument('--verbose', action='store_true');
+	arg = parser.parse_args();
+	for msa in read_stockholm(arg.stockholm):
+		print(msa.accession, msa.depth, msa.description)
+		results = np.zeros(msa.depth, dtype=np.float32)
+		cppyy.gbl.get_similarities(msa.seqs, msa.depth, results)
+		for uid, dis in zip(msa.uids, results):
+			if arg.verbose: print(uid, dis)

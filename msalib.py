@@ -178,40 +178,74 @@ extern "C" {
 #include <string.h>
 #include <stdio.h>
 
-// this could be 2x faster by mirroring the half matrix
-// could also use a thread-pool
-// could also be outside python FFS
-void get_similarities(char **seqs, int size, float *results) {
+double similarity(const char *s1, const char *s2) {
+	int slen = strlen(s1);
+	int match = 0;
+	int total = 0;
+	for (int i = 0; i < slen; i++) {
+		if (s1[i] == '.') continue;
+		if (s2[i] == '.') continue;
+		if (s1[i] == s2[i]) match++;
+		total++;
+	}
+	return (double)match / (double)total;
+}
+
+// slower, simpler algorithm
+void get_similarities1(char **seqs, int size, float *results) {
 	for (int i = 0; i < size; i++) {
 		double sum = 0;
 		for (int j = 0; j < size; j++) {
 			if (i == j) continue;
-			char *s1 = seqs[i];
-			char *s2 = seqs[j];
-			int slen = strlen(s1);
-			int match = 0;
-			int total = 0;
-			for (int k = 0; k < slen; k++) {
-				if (s1[k] == '.') continue;
-				if (s2[k] == '.') continue;
-				if (s1[k] == s2[k]) match++;
-				total++;
-			}
-			sum += (double)match/(double)total;
+			sum += similarity(seqs[i], seqs[j]);
 		}
 		results[i] = sum/(double)(size -1);
 	}
-}}""")
+}
+
+// faster, distance vector algorithm
+int dvec_index(int n, int i, int j) {
+	assert(i != j); // half-matrix minus diagonal only
+	
+	if (i > j) {
+		int temp = i;
+		i = j;
+		j = temp;
+	}
+	return (n*i) - (i * (i+1))/2 + (j -i -1);
+}
+void get_similarities2(char **seqs, int size, float *results) {
+	int dsize = size * (size-1) / 2;
+	double *dvec = (double*)malloc(sizeof(double) * dsize);
+	for (int i = 0; i < size; i++) {
+		for (int j = i+1; j < size; j++) {
+			dvec[dvec_index(size, i, j)] = similarity(seqs[i], seqs[j]);
+		}
+	}
+	for (int i = 0; i < size; i++) {
+		double sum = 0;
+		for (int j = 0; j < size; j++) {
+			if (i == j) continue;
+			sum += dvec[dvec_index(size, i, j)];
+		}
+		results[i] = sum/(double)(size -1);
+	}
+	free(dvec);
+}
+
+}""")
 
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
 	parser.add_argument('stockholm')
+	parser.add_argument('--slow', action='store_true');
 	parser.add_argument('--verbose', action='store_true');
 	arg = parser.parse_args();
 	for msa in read_stockholm(arg.stockholm):
 		print(msa.accession, msa.depth, msa.description)
-		results = np.zeros(msa.depth, dtype=np.float32)
-		cppyy.gbl.get_similarities(msa.seqs, msa.depth, results)
-		for uid, dis in zip(msa.uids, results):
+		res = np.zeros(msa.depth, dtype=np.float32)
+		if arg.slow: cppyy.gbl.get_similarities1(msa.seqs, msa.depth, res)
+		else:        cppyy.gbl.get_similarities2(msa.seqs, msa.depth, res)
+		for uid, dis in zip(msa.uids, res):
 			if arg.verbose: print(uid, dis)
